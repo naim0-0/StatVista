@@ -7,7 +7,7 @@
 
 using namespace std;
 
-/* remove invalid numeric values */
+
 void removeNullValues()
 {
     vector<double> cleanData;
@@ -22,7 +22,7 @@ void removeNullValues()
     g_data=cleanData;
 }
 
-/* bubble sort ascending */
+
 void sortAscending()
 {
     int n=g_data.size();
@@ -41,7 +41,7 @@ void sortAscending()
     }
 }
 
-/* bubble sort descending */
+
 void sortDescending()
 {
     int n=g_data.size();
@@ -60,7 +60,7 @@ void sortDescending()
     }
 }
 
-/* remove duplicates (after sorting) */
+
 void removeDuplicates()
 {
     if(g_data.size()==0)
@@ -82,3 +82,4 @@ void removeDuplicates()
     }
     g_data=uniqueData;
 }
+

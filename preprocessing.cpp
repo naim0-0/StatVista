@@ -60,7 +60,6 @@ void sortDescending()
     }
 }
 
-
 void removeDuplicates()
 {
     if(g_data.size()==0)
@@ -82,4 +81,3 @@ void removeDuplicates()
     }
     g_data=uniqueData;
 }
-

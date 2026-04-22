@@ -1,83 +1,79 @@
 #include<iostream>
-#include<cmath>
 #include<vector>
-
-#include "utility.h"
-#include "preprocessing.h"
+#include<cmath>
+#include"../include/utility.h"
+#include"../include/exploration.h"
+#include"../include/preprocessing.h"
 
 using namespace std;
 
-
-void removeNullValues()
+void removeNullRows(int col)
 {
-    vector<double> cleanData;
-
-    for(int i=0;i<g_data.size();i++)
+    vector<vector<double>> clean;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        if(!std::isnan(g_data[i])&&!std::isinf(g_data[i]))
-        {
-            cleanData.push_back(g_data[i]);
-        }
+        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
+            clean.push_back(g_data[i]);
     }
-    g_data=cleanData;
+    int removed=g_data.size()-clean.size();
+    g_data=clean;
+    cout<<removed<<" null row(s) removed from column "<<col<<"."<<endl;
 }
 
-
-void sortAscending()
+void replaceNullWithMean(int col)
 {
-    int n=g_data.size();
-
-    for(int i=0;i<n-1;i++)
+    double mean=calculateMean(col);
+    int replaced=0;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        for(int j=0;j<n-i-1;j++)
+        if(col<(int)g_data[i].size()&&isnan(g_data[i][col]))
         {
-            if(g_data[j]>g_data[j+1])
-            {
-                double temp=g_data[j];
-                g_data[j]=g_data[j+1];
-                g_data[j+1]=temp;
-            }
+            g_data[i][col]=mean;
+            replaced++;
         }
     }
+    cout<<replaced<<" null value(s) replaced with mean ("<<mean<<") in column "<<col<<"."<<endl;
 }
 
-
-void sortDescending()
+void removeDuplicateRows()
 {
-    int n=g_data.size();
-
-    for(int i=0;i<n-1;i++)
+    vector<vector<double>> unique;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        for(int j=0;j<n-i-1;j++)
+        bool found=false;
+        for(int j=0;j<(int)unique.size();j++)
         {
-            if(g_data[j]<g_data[j+1])
-            {
-                double temp=g_data[j];
-                g_data[j]=g_data[j+1];
-                g_data[j+1]=temp;
-            }
+            if(g_data[i]==unique[j]){found=true;break;}
         }
+        if(!found) unique.push_back(g_data[i]);
     }
+    int removed=g_data.size()-unique.size();
+    g_data=unique;
+    cout<<removed<<" duplicate row(s) removed."<<endl;
 }
 
-void removeDuplicates()
+void minMaxNormalize(int col)
 {
-    if(g_data.size()==0)
+    double minVal=calculateMin(col);
+    double maxVal=calculateMax(col);
+    if(maxVal-minVal==0){cout<<"Cannot normalize: all values are equal."<<endl;return;}
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        return;
+        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
+            g_data[i][col]=(g_data[i][col]-minVal)/(maxVal-minVal);
     }
+    cout<<"Min-Max normalization applied to column "<<col<<"."<<endl;
+}
 
-    sortAscending();
-
-    vector<double> uniqueData;
-    uniqueData.push_back(g_data[0]);
-
-    for(int i=1;i<g_data.size();i++)
+void zScoreNormalize(int col)
+{
+    double mean=calculateMean(col);
+    double std=calculateStandardDeviation(col);
+    if(std==0){cout<<"Cannot normalize: standard deviation is 0."<<endl;return;}
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        if(g_data[i]!=g_data[i-1])
-        {
-            uniqueData.push_back(g_data[i]);
-        }
+        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
+            g_data[i][col]=(g_data[i][col]-mean)/std;
     }
-    g_data=uniqueData;
+    cout<<"Z-Score normalization applied to column "<<col<<"."<<endl;
 }

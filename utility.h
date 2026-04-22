@@ -4,13 +4,16 @@
 #include<vector>
 #include<string>
 
-using namespace std;
+extern std::vector<std::vector<double>> g_data;
+extern std::vector<std::string> g_headers;
+extern std::string g_currentFile;
 
-extern vector<double> g_data;
-
-void loadData(string filename);
-bool isNumeric(string value);
+void loadData(std::string filename);
+void saveData();
+void saveDataAs(std::string filename);
 void printData();
-int dataSize();
+int getRowCount();
+int getColumnCount();
+std::vector<double> getColumn(int col);
 
 #endif

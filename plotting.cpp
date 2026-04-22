@@ -84,39 +84,3 @@ void plotScatter(int colX,int colY)
     cout<<"    "<<minX<<string(PLOT_WIDTH-10,' ')<<maxX<<endl;
     cout<<"  X: ["<<colX<<"] "<<g_headers[colX]<<endl;
 }
-
-void plotHistogram(int col)
-{
-    if(g_data.empty()){cout<<"No data loaded."<<endl;return;}
-    vector<double> vals;
-    for(int i=0;i<(int)g_data.size();i++)
-    {
-        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
-            vals.push_back(g_data[i][col]);
-    }
-    if(vals.empty()){cout<<"No valid data."<<endl;return;}
-    double minV=*min_element(vals.begin(),vals.end());
-    double maxV=*max_element(vals.begin(),vals.end());
-    double range=maxV-minV;
-    const int BINS=8;
-    double binWidth=(range==0)?1:range/BINS;
-    vector<int> freq(BINS,0);
-    for(double v:vals)
-    {
-        int b=(int)((v-minV)/binWidth);
-        if(b>=BINS) b=BINS-1;
-        freq[b]++;
-    }
-    int maxFreq=*max_element(freq.begin(),freq.end());
-    cout<<"\n  Histogram: ["<<col<<"] "<<g_headers[col]<<endl;
-    cout<<string(PLOT_WIDTH+16,'-')<<endl;
-    for(int b=0;b<BINS;b++)
-    {
-        double lo=minV+b*binWidth;
-        double hi=lo+binWidth;
-        int barLen=(maxFreq==0)?0:(int)((double)freq[b]/maxFreq*PLOT_WIDTH);
-        cout<<"  ["<<setw(6)<<setprecision(4)<<lo<<" - "<<setw(6)<<hi<<"] | ";
-        cout<<string(barLen,'#')<<" "<<freq[b]<<endl;
-    }
-    cout<<string(PLOT_WIDTH+16,'-')<<endl;
-}

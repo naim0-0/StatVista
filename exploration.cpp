@@ -1,162 +1,167 @@
-#include<iostream>
 #include<vector>
 #include<cmath>
-
-#include "utility.h"
-#include "preprocessing.h"
+#include<algorithm>
+#include<iostream>
+#include<map>
+#include"../include/utility.h"
+#include"../include/exploration.h"
 
 using namespace std;
 
-double calculateMean()
+vector<double> cleanColumn(int col)
 {
-    if(g_data.size()==0)
+    vector<double> d;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        return 0;
+        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
+            d.push_back(g_data[i][col]);
     }
-
-    double sum=0;
-    for(int i=0;i<g_data.size();i++)
-    {
-        sum+=g_data[i];
-    }
-    return sum/g_data.size();
+    return d;
 }
 
-double calculateMedian()
+double calculateMean(int col)
 {
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    double sum=0;
+    for(int i=0;i<(int)d.size();i++) sum+=d[i];
+    return sum/d.size();
+}
 
-    sortAscending();
-    int n=g_data.size();
-
-    if(n%2==0)
-    {
-        return (g_data[n/2-1]+g_data[n/2])/2;
-    }
+double calculateMedian(int col)
+{
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    sort(d.begin(),d.end());
+    if(d.size()%2==0)
+        return (d[d.size()/2-1]+d[d.size()/2])/2.0;
     else
-    {
-        return g_data[n/2];
-    }
+        return d[d.size()/2];
 }
 
-double calculateMin()
+double calculateMode(int col)
 {
-    if(g_data.size()==0)
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    map<double,int> freq;
+    for(int i=0;i<(int)d.size();i++) freq[d[i]]++;
+    double mode=d[0];
+    int maxFreq=0;
+    for(auto &p:freq)
     {
-        return 0;
-    }
-
-    double min=g_data[0];
-    for(int i=1;i<g_data.size();i++)
-    {
-        if(g_data[i]<min)
+        if(p.second>maxFreq)
         {
-            min=g_data[i];
+            maxFreq=p.second;
+            mode=p.first;
         }
     }
-    return min;
+    return mode;
 }
 
-double calculateMax()
+double calculateVariance(int col)
 {
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
-
-    double max=g_data[0];
-    for(int i=1;i<g_data.size();i++)
-    {
-        if(g_data[i]>max)
-        {
-            max=g_data[i];
-        }
-    }
-    return max;
-}
-
-double calculateVariance()
-{
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
-
-    double mean=calculateMean();
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    double mean=calculateMean(col);
     double sum=0;
-
-    for(int i=0;i<g_data.size();i++)
+    for(int i=0;i<(int)d.size();i++)
     {
-        double diff=g_data[i]-mean;
+        double diff=d[i]-mean;
         sum+=diff*diff;
     }
-    return sum/g_data.size();
+    return sum/d.size();
 }
 
-double calculateStandardDeviation()
+double calculateStandardDeviation(int col)
 {
-    return sqrt(calculateVariance());
+    return sqrt(calculateVariance(col));
 }
 
-double calculateRange()
+double calculateMin(int col)
 {
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
-    return calculateMax()-calculateMin();
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    return *min_element(d.begin(),d.end());
 }
 
-void calculateFrequency()
+double calculateMax(int col)
 {
-    if(g_data.size()==0)
+    vector<double> d=cleanColumn(col);
+    if(d.empty()) return 0;
+    return *max_element(d.begin(),d.end());
+}
+
+double calculateQ1(int col)
+{
+    vector<double> d=cleanColumn(col);
+    if(d.size()<4) return 0;
+    sort(d.begin(),d.end());
+    int mid=d.size()/2;
+    vector<double> lower(d.begin(),d.begin()+mid);
+    if(lower.size()%2==0)
+        return (lower[lower.size()/2-1]+lower[lower.size()/2])/2.0;
+    else
+        return lower[lower.size()/2];
+}
+
+double calculateQ3(int col)
+{
+    vector<double> d=cleanColumn(col);
+    if(d.size()<4) return 0;
+    sort(d.begin(),d.end());
+    int mid=d.size()/2;
+    int start=(d.size()%2==0)?mid:mid+1;
+    vector<double> upper(d.begin()+start,d.end());
+    if(upper.size()%2==0)
+        return (upper[upper.size()/2-1]+upper[upper.size()/2])/2.0;
+    else
+        return upper[upper.size()/2];
+}
+
+double calculateIQR(int col)
+{
+    return calculateQ3(col)-calculateQ1(col);
+}
+
+void detectOutliers(int col)
+{
+    double q1=calculateQ1(col);
+    double q3=calculateQ3(col);
+    double iqr=calculateIQR(col);
+    double low=q1-1.5*iqr;
+    double high=q3+1.5*iqr;
+    cout<<"IQR Fences: ["<<low<<", "<<high<<"]"<<endl;
+    bool found=false;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        return;
-    }
-
-    sortAscending();
-
-    double current=g_data[0];
-    int count=1;
-
-    for(int i=1;i<g_data.size();i++)
-    {
-        if(g_data[i]==current)
+        if(col<(int)g_data[i].size()&&!isnan(g_data[i][col]))
         {
-            count++;
-        }
-        else
-        {
-            cout<<current<<" "<<count<<endl;
-            current=g_data[i];
-            count=1;
+            double v=g_data[i][col];
+            if(v<low||v>high)
+            {
+                cout<<"  Row "<<i<<": "<<v<<endl;
+                found=true;
+            }
         }
     }
-    cout<<current<<" "<<count<<endl;
+    if(!found) cout<<"  No outliers detected."<<endl;
 }
 
-double calculateCorrelation()
+double calculateCorrelation(int colX,int colY)
 {
-    int n;
-    cin>>n;
-
-    if(n<=1)
+    vector<double> x,y;
+    for(int i=0;i<(int)g_data.size();i++)
     {
-        return 0;
+        if(colX<(int)g_data[i].size()&&colY<(int)g_data[i].size()
+            &&!isnan(g_data[i][colX])&&!isnan(g_data[i][colY]))
+        {
+            x.push_back(g_data[i][colX]);
+            y.push_back(g_data[i][colY]);
+        }
     }
-
-    vector<double> x(n),y(n);
-
-    for(int i=0;i<n;i++)
-    {
-        cin>>x[i]>>y[i];
-    }
-
+    int n=x.size();
+    if(n==0) return 0;
     double sumX=0,sumY=0,sumXY=0,sumX2=0,sumY2=0;
-
     for(int i=0;i<n;i++)
     {
         sumX+=x[i];
@@ -165,95 +170,8 @@ double calculateCorrelation()
         sumX2+=x[i]*x[i];
         sumY2+=y[i]*y[i];
     }
-
-    double numerator=n*sumXY-sumX*sumY;
-    double denominator=sqrt((n*sumX2-sumX*sumX)*(n*sumY2-sumY*sumY));
-
-    if(denominator==0)
-    {
-        return 0;
-    }
-    return numerator/denominator;
-}
-
-double calculateQ1()
-{
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
-
-    sortAscending();
-    int n=g_data.size();
-    int mid=n/2;
-
-    if(mid%2==0)
-    {
-        return (g_data[mid/2-1]+g_data[mid/2])/2;
-    }
-    else
-    {
-        return g_data[mid/2];
-    }
-}
-
-double calculateQ3()
-{
-    if(g_data.size()==0)
-    {
-        return 0;
-    }
-
-    sortAscending();
-    int n=g_data.size();
-    int mid=n/2;
-    int start;
-
-    if(n%2==0)
-    {
-        start=mid;
-    }
-    else
-    {
-        start=mid+1;
-    }
-
-    int len=n-start;
-
-    if(len%2==0)
-    {
-        return (g_data[start+len/2-1]+g_data[start+len/2])/2;
-    }
-    else
-    {
-        return g_data[start+len/2];
-    }
-}
-
-double calculateIQR()
-{
-    return calculateQ3()-calculateQ1();
-}
-
-void detectOutliers()
-{
-    if(g_data.size()==0)
-    {
-        return;
-    }
-
-    double q1=calculateQ1();
-    double q3=calculateQ3();
-    double iqr=calculateIQR();
-
-    double lower=q1-1.5*iqr;
-    double upper=q3+1.5*iqr;
-
-    for(int i=0;i<g_data.size();i++)
-    {
-        if(g_data[i]<lower||g_data[i]>upper)
-        {
-            cout<<g_data[i]<<endl;
-        }
-    }
+    double num=n*sumXY-sumX*sumY;
+    double den=sqrt((n*sumX2-sumX*sumX)*(n*sumY2-sumY*sumY));
+    if(den==0) return 0;
+    return num/den;
 }

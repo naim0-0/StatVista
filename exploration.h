@@ -1,21 +1,20 @@
 #ifndef EXPLORATION_H
 #define EXPLORATION_H
 
-double calculateMean();
-double calculateMedian();
-double calculateMin();
-double calculateMax();
+#include<vector>
 
-double calculateVariance();
-double calculateStandardDeviation();
-double calculateRange();
-
-void calculateFrequency();
-double calculateCorrelation();
-
-double calculateQ1();
-double calculateQ3();
-double calculateIQR();
-void detectOutliers();
+std::vector<double> cleanColumn(int col);
+double calculateMean(int col);
+double calculateMedian(int col);
+double calculateMode(int col);
+double calculateVariance(int col);
+double calculateStandardDeviation(int col);
+double calculateMin(int col);
+double calculateMax(int col);
+double calculateQ1(int col);
+double calculateQ3(int col);
+double calculateIQR(int col);
+void detectOutliers(int col);
+double calculateCorrelation(int colX,int colY);
 
 #endif

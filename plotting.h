@@ -3,6 +3,5 @@
 
 void plotColumn(int col);
 void plotScatter(int colX,int colY);
-void plotHistogram(int col);
 
 #endif
